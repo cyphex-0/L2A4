@@ -14,11 +14,14 @@ const app: Application = express();
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: 'Too many requests from this IP, please try again later.',
 });
 
-app.use(cors());
+import cookieParser from 'cookie-parser';
+
+app.use(cors({ origin: true, credentials: true }));
+app.use(cookieParser());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(limiter);
