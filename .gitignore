@@ -1,7 +1,10 @@
 node_modules
 dist
 .env
-docs/RentNest.postman_collection.json
+
 coverage
 
 /src/generated/prisma
+
+RentNest.md
+README_assign.md

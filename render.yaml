@@ -1,0 +1,33 @@
+services:
+  # The Node.js Web Service
+  - type: web
+    name: rentnest-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        sync: false # You MUST set this manually in the Render Dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+      - key: STRIPE_SECRET_KEY
+        sync: false # Set manually in Dashboard
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false # Set manually in Dashboard
+      - key: SEED_ADMIN_PASSWORD
+        value: RentNest#Admin2026
+
+  # Optional: A managed PostgreSQL database (Uncomment if you want Render to host the DB)
+  # - type: psql
+  #   name: rentnest-db
+  #   plan: free

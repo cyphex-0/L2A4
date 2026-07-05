@@ -33,28 +33,4 @@ router.get(
   RentalController.getRentalRequestById
 );
 
-router.get(
-  '/requests',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  RentalController.getLandlordRequests
-);
-
-router.put(
-  '/:id/status',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  validateRequest(uuidParamValidation),
-  validateRequest(RentalValidation.updateRentalRequestStatusSchema),
-  RentalController.updateRequestStatus
-);
-
-router.put(
-  '/:id/complete',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  validateRequest(uuidParamValidation),
-  RentalController.completeRentalRequest
-);
-
 export const RentalRoutes = router;

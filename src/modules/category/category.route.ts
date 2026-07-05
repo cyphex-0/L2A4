@@ -12,29 +12,4 @@ const router = express.Router();
 
 router.get('/', CategoryController.getAllCategories);
 
-router.post(
-  '/',
-  verifyJWT,
-  authorize(Role.ADMIN),
-  validateRequest(CategoryValidation.createCategorySchema),
-  CategoryController.createCategory
-);
-
-router.put(
-  '/:id',
-  verifyJWT,
-  authorize(Role.ADMIN),
-  validateRequest(uuidParamValidation),
-  validateRequest(CategoryValidation.updateCategorySchema),
-  CategoryController.updateCategory
-);
-
-router.delete(
-  '/:id',
-  verifyJWT,
-  authorize(Role.ADMIN),
-  validateRequest(uuidParamValidation),
-  CategoryController.deleteCategory
-);
-
 export const CategoryRoutes = router;

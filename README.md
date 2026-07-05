@@ -36,6 +36,7 @@ Use `4242 4242 4242 4242` with any future expiry and any CVC for test payments.
 - Browse and filter all available rental properties.
 - Submit rental requests for desired properties.
 - Make secure payments via Stripe upon request approval.
+- Support for both manual payment confirmation and automatic Stripe Webhooks.
 - Track payment history and rental status.
 - Leave reviews for completed rentals.
 
@@ -75,8 +76,11 @@ Create a `.env` file in the root directory and configure the following variables
 DATABASE_URL="postgresql://username:password@host:port/database"
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_EXPIRES_IN="30d"
+JWT_REFRESH_SECRET="your-refresh-secret"
+JWT_REFRESH_EXPIRES_IN="365d"
 PORT=5000
 STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 BCRYPT_SALT_ROUNDS=12
 SEED_ADMIN_PASSWORD="RentNest#Admin2026"
 ```

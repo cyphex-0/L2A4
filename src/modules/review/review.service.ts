@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { AppError } from '../../errors/AppError';
 
 const prisma = new PrismaClient();
 
@@ -14,7 +15,7 @@ const createReview = async (payload: any, tenantId: string) => {
   });
 
   if (!completedRental) {
-    throw new Error('You can only review properties you have successfully rented');
+    throw new AppError(403, 'You can only review properties you have successfully rented');
   }
 
   const existingReview = await prisma.review.findFirst({
@@ -25,7 +26,7 @@ const createReview = async (payload: any, tenantId: string) => {
   });
 
   if (existingReview) {
-    throw new Error('You have already reviewed this property');
+    throw new AppError(409, 'You have already reviewed this property');
   }
 
   const result = await prisma.review.create({

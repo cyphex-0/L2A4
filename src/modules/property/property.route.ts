@@ -13,28 +13,4 @@ import { uuidParamValidation } from '../../middleware/uuidValidation';
 router.get('/', validateRequest(PropertyValidation.getPropertiesSchema), PropertyController.getAllProperties);
 router.get('/:id', validateRequest(uuidParamValidation), PropertyController.getPropertyById);
 
-router.post(
-  '/',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  validateRequest(PropertyValidation.createPropertySchema),
-  PropertyController.createProperty
-);
-
-router.put(
-  '/:id',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  validateRequest(PropertyValidation.updatePropertySchema),
-  PropertyController.updateProperty
-);
-
-router.delete(
-  '/:id',
-  verifyJWT,
-  authorize(Role.LANDLORD),
-  validateRequest(uuidParamValidation),
-  PropertyController.deleteProperty
-);
-
 export const PropertyRoutes = router;

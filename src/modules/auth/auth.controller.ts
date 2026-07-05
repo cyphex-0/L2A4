@@ -14,13 +14,33 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+import config from '../../config';
+
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.loginUser(req.body);
+  const { refreshToken, ...others } = result;
+
+  res.cookie('refreshToken', refreshToken, {
+    secure: config.env === 'production',
+    httpOnly: true,
+  });
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'User logged in successfully',
+    data: others,
+  });
+});
+
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const { refreshToken } = req.cookies;
+  const result = await AuthService.refreshToken(refreshToken);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Access token retrieved successfully',
     data: result,
   });
 });
@@ -36,8 +56,21 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateProfile = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.updateProfile(req.user!.userId, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Profile updated successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   registerUser,
   loginUser,
   getMe,
+  refreshToken,
+  updateProfile,
 };

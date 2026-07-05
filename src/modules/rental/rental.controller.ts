@@ -25,39 +25,7 @@ const getTenantRequests = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getLandlordRequests = catchAsync(async (req: Request, res: Response) => {
-  const result = await RentalService.getLandlordRequests(req.user!.userId);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Rental requests retrieved successfully',
-    data: result,
-  });
-});
-
-const updateRequestStatus = catchAsync(async (req: Request, res: Response) => {
-  const { status } = req.body;
-  const result = await RentalService.updateRequestStatus(req.params.id as string, req.user!.userId, status);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Rental request status updated successfully',
-    data: result,
-  });
-});
-
-const completeRentalRequest = catchAsync(async (req: Request, res: Response) => {
-  const result = await RentalService.completeRentalRequest(req.params.id as string, req.user!.userId);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Rental completed successfully',
-    data: result,
-  });
-});
 
 const getRentalRequestById = catchAsync(async (req: Request, res: Response) => {
   const result = await RentalService.getRentalRequestById(req.params.id as string, req.user!.userId, req.user!.role);
@@ -73,8 +41,5 @@ const getRentalRequestById = catchAsync(async (req: Request, res: Response) => {
 export const RentalController = {
   createRentalRequest,
   getTenantRequests,
-  getLandlordRequests,
-  updateRequestStatus,
-  completeRentalRequest,
   getRentalRequestById,
 };

@@ -7,6 +7,8 @@ import { Role } from '@prisma/client';
 import { uuidParamValidation } from '../../middleware/uuidValidation';
 import validateRequest from '../../middleware/validateRequest';
 import { PropertyValidation } from '../property/property.validation';
+import { CategoryController } from '../category/category.controller';
+import { CategoryValidation } from '../category/category.validation';
 const router = express.Router();
 
 router.get(
@@ -57,6 +59,31 @@ router.get(
   verifyJWT,
   authorize(Role.ADMIN),
   AdminController.getAllRentals
+);
+
+router.post(
+  '/categories',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  validateRequest(CategoryValidation.createCategorySchema),
+  CategoryController.createCategory
+);
+
+router.put(
+  '/categories/:id',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
+  validateRequest(CategoryValidation.updateCategorySchema),
+  CategoryController.updateCategory
+);
+
+router.delete(
+  '/categories/:id',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
+  CategoryController.deleteCategory
 );
 
 export const AdminRoutes = router;

@@ -24,4 +24,16 @@ router.get(
   AuthController.getMe
 );
 
+router.post(
+  '/refresh-token',
+  AuthController.refreshToken
+);
+
+router.put(
+  '/me',
+  verifyJWT,
+  validateRequest(AuthValidation.updateProfileSchema),
+  AuthController.updateProfile
+);
+
 export const AuthRoutes = router;

@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import { AppError } from '../../errors/AppError';
 
 const prisma = new PrismaClient();
 
@@ -6,9 +7,11 @@ const getAllProperties = async (filters: any, options: any) => {
   const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = options;
   const skip = (page - 1) * limit;
 
-  const { search, minPrice, maxPrice, bedrooms, location } = filters;
+  const { search, minPrice, maxPrice, bedrooms, location, categoryId } = filters;
 
-  const andConditions: Prisma.PropertyWhereInput[] = [];
+  const andConditions: Prisma.PropertyWhereInput[] = [
+    { status: 'AVAILABLE' }
+  ];
 
   if (search) {
     andConditions.push({
@@ -33,6 +36,15 @@ const getAllProperties = async (filters: any, options: any) => {
 
   if (location) {
     andConditions.push({ location: { contains: location, mode: 'insensitive' } });
+  }
+
+  if (categoryId) {
+    andConditions.push({ categoryId });
+  }
+
+  if (filters.amenities) {
+    const amenitiesList = filters.amenities.split(',').map((a: string) => a.trim());
+    andConditions.push({ amenities: { hasSome: amenitiesList } });
   }
 
   const whereConditions: Prisma.PropertyWhereInput =
@@ -101,62 +113,9 @@ const getPropertyById = async (id: string) => {
   return property;
 };
 
-const createProperty = async (payload: any, landlordId: string) => {
-  const result = await prisma.property.create({
-    data: {
-      ...payload,
-      landlordId,
-    },
-    include: {
-      category: true,
-    }
-  });
 
-  return result;
-};
-
-const updateProperty = async (id: string, payload: any, landlordId: string) => {
-  const property = await prisma.property.findUnique({ where: { id } });
-
-  if (!property) {
-    throw new Error('Property not found');
-  }
-
-  if (property.landlordId !== landlordId) {
-    throw new Error('You are not authorized to update this property');
-  }
-
-  const result = await prisma.property.update({
-    where: { id },
-    data: payload,
-    include: { category: true }
-  });
-
-  return result;
-};
-
-const deleteProperty = async (id: string, landlordId: string) => {
-  const property = await prisma.property.findUnique({ where: { id } });
-
-  if (!property) {
-    throw new Error('Property not found');
-  }
-
-  if (property.landlordId !== landlordId) {
-    throw new Error('You are not authorized to delete this property');
-  }
-
-  const result = await prisma.property.delete({
-    where: { id },
-  });
-
-  return result;
-};
 
 export const PropertyService = {
   getAllProperties,
   getPropertyById,
-  createProperty,
-  updateProperty,
-  deleteProperty,
 };

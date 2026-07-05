@@ -21,7 +21,6 @@ const sendResponse = <T>(res: Response, data: IApiReponse<T>) => {
     data: data.data || null,
   };
 
-  // Do not include meta if it's null/undefined
   if (!responseData.meta) {
     delete responseData.meta;
   }

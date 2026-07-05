@@ -26,7 +26,6 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(limiter);
 
-// Webhook must be parsed as raw body
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), PaymentController.stripeWebhook);
 
 app.use(express.json());

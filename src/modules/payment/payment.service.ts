@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { PrismaClient, PaymentProvider } from '@prisma/client';
 import config from '../../config';
+import { AppError } from '../../errors/AppError';
 
 const stripe = new Stripe(config.stripe.secret_key as string, {
   apiVersion: '2026-06-24.dahlia' as any,
@@ -15,15 +16,15 @@ const createPaymentIntent = async (rentalRequestId: string, tenantId: string) =>
   });
 
   if (!rentalRequest) {
-    throw new Error('Rental request not found');
+    throw new AppError(404, 'Rental request not found');
   }
 
   if (rentalRequest.tenantId !== tenantId) {
-    throw new Error('You are not authorized to pay for this request');
+    throw new AppError(403, 'You are not authorized to pay for this request');
   }
 
   if (rentalRequest.status !== 'APPROVED') {
-    throw new Error('Rental request is not approved for payment');
+    throw new AppError(400, 'Rental request is not approved for payment');
   }
 
   const existingPayment = await prisma.payment.findUnique({
@@ -31,7 +32,7 @@ const createPaymentIntent = async (rentalRequestId: string, tenantId: string) =>
   });
 
   if (existingPayment && existingPayment.status === 'COMPLETED') {
-    throw new Error('Payment already completed for this request');
+    throw new AppError(409, 'Payment already completed for this request');
   }
 
   const amountInCents = Math.round(Number(rentalRequest.property.rent) * 100);
@@ -71,6 +72,61 @@ const createPaymentIntent = async (rentalRequestId: string, tenantId: string) =>
     clientSecret: paymentIntent.client_secret,
     transactionId: paymentIntent.id,
   };
+};
+
+const confirmPayment = async (paymentId: string, tenantId: string) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: {
+      rentalRequest: {
+        include: { property: true },
+      },
+    },
+  });
+
+  if (!payment) {
+    throw new AppError(404, 'Payment not found');
+  }
+
+  if (payment.tenantId !== tenantId) {
+    throw new AppError(403, 'You are not authorized to confirm this payment');
+  }
+
+  if (payment.status === 'COMPLETED') {
+    throw new AppError(409, 'Payment already completed');
+  }
+  const paymentIntent = await stripe.paymentIntents.retrieve(payment.transactionId);
+
+  if (paymentIntent.status === 'succeeded') {
+    const updatedPayment = await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'COMPLETED',
+        paidAt: new Date(),
+      },
+    });
+
+    await prisma.rentalRequest.update({
+      where: { id: payment.rentalRequestId },
+      data: { status: 'ACTIVE' },
+    });
+
+    await prisma.property.update({
+      where: { id: payment.rentalRequest.propertyId },
+      data: { status: 'RENTED' },
+    });
+
+    return updatedPayment;
+  } else {
+    const updatedPayment = await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: paymentIntent.status === 'canceled' ? 'FAILED' : 'PENDING',
+      },
+    });
+
+    return updatedPayment;
+  }
 };
 
 const handleWebhook = async (payload: Buffer, signature: string) => {
@@ -132,8 +188,33 @@ const getPaymentHistory = async (tenantId: string) => {
   return result;
 };
 
+const getPaymentById = async (id: string, tenantId: string) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id },
+    include: {
+      rentalRequest: {
+        include: {
+          property: true,
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    throw new AppError(404, 'Payment not found');
+  }
+
+  if (payment.tenantId !== tenantId) {
+    throw new AppError(403, 'You are not authorized to view this payment');
+  }
+
+  return payment;
+};
+
 export const PaymentService = {
   createPaymentIntent,
+  confirmPayment,
   handleWebhook,
   getPaymentHistory,
+  getPaymentById,
 };

@@ -6,6 +6,13 @@ const createPaymentIntentSchema = z.object({
   }),
 });
 
+const confirmPaymentSchema = z.object({
+  body: z.object({
+    paymentId: z.string({ message: 'Payment ID is required' }),
+  }),
+});
+
 export const PaymentValidation = {
   createPaymentIntentSchema,
+  confirmPaymentSchema,
 };
