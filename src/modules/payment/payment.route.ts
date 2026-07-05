@@ -13,4 +13,11 @@ router.post(
   PaymentController.createPaymentIntent
 );
 
+router.get(
+  '/history',
+  verifyJWT,
+  authorize(Role.TENANT),
+  PaymentController.getPaymentHistory
+);
+
 export const PaymentRoutes = router;

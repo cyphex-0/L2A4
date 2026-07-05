@@ -16,6 +16,28 @@ const createPaymentIntent = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPaymentHistory = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.getPaymentHistory(req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment history retrieved successfully',
+    data: result,
+  });
+});
+
+const stripeWebhook = catchAsync(async (req: Request, res: Response) => {
+  const signature = req.headers['stripe-signature'] as string;
+  const payload = req.body;
+
+  const result = await PaymentService.handleWebhook(payload, signature);
+
+  res.status(200).json(result);
+});
+
 export const PaymentController = {
   createPaymentIntent,
+  getPaymentHistory,
+  stripeWebhook,
 };

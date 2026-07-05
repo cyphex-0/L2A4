@@ -3,7 +3,7 @@ import { PrismaClient, PaymentProvider } from '@prisma/client';
 import config from '../../config';
 
 const stripe = new Stripe(config.stripe.secret_key as string, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2026-06-24.dahlia' as any,
 });
 
 const prisma = new PrismaClient();
@@ -73,6 +73,67 @@ const createPaymentIntent = async (rentalRequestId: string, tenantId: string) =>
   };
 };
 
+const handleWebhook = async (payload: Buffer, signature: string) => {
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      config.stripe.webhook_secret as string
+    );
+  } catch (err: any) {
+    throw new Error(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    
+    await prisma.payment.update({
+      where: { transactionId: paymentIntent.id },
+      data: {
+        status: 'COMPLETED',
+        paidAt: new Date(),
+      },
+    });
+
+    const payment = await prisma.payment.findUnique({
+      where: { transactionId: paymentIntent.id },
+    });
+
+    if (payment) {
+      await prisma.rentalRequest.update({
+        where: { id: payment.rentalRequestId },
+        data: { status: 'ACTIVE' },
+      });
+
+      await prisma.property.update({
+        where: { id: (await prisma.rentalRequest.findUnique({ where: { id: payment.rentalRequestId } }))!.propertyId },
+        data: { status: 'RENTED' },
+      });
+    }
+  }
+
+  return { received: true };
+};
+
+const getPaymentHistory = async (tenantId: string) => {
+  const result = await prisma.payment.findMany({
+    where: { tenantId },
+    include: {
+      rentalRequest: {
+        include: {
+          property: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  return result;
+};
+
 export const PaymentService = {
   createPaymentIntent,
+  handleWebhook,
+  getPaymentHistory,
 };

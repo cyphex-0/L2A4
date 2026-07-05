@@ -6,11 +6,17 @@ import morgan from 'morgan';
 import router from './routes';
 import globalErrorHandler from './middleware/globalErrorHandler';
 
+import { PaymentController } from './modules/payment/payment.controller';
+
 const app: Application = express();
 
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+
+// Webhook must be parsed as raw body
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), PaymentController.stripeWebhook);
+
 app.use(express.json());
 
 app.use('/api', router);
