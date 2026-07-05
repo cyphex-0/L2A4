@@ -14,6 +14,30 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.loginUser(req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User logged in successfully',
+    data: result,
+  });
+});
+
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.getMe(req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User profile retrieved successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   registerUser,
+  loginUser,
+  getMe,
 };
