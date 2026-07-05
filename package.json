@@ -2,7 +2,7 @@
   "name": "a4",
   "version": "1.0.0",
   "description": "RentNest Backend API - A property rental marketplace platform.",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
