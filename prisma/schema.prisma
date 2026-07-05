@@ -1,13 +1,143 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  TENANT
+  LANDLORD
+  ADMIN
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+}
+
+enum RentalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String          
+  role           Role
+  phone          String?
+  address        String?
+  profileImage   String?
+  isBanned       Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  properties     Property[]      @relation("LandlordProperties")
+  rentalRequests RentalRequest[] @relation("TenantRequests")
+  reviews        Review[]
+  payments       Payment[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  properties  Property[]
+}
+
+model Property {
+  id            String          @id @default(uuid())
+  title         String
+  description   String
+  location      String
+  address       String
+  rent          Decimal         @db.Decimal(10, 2)
+  bedrooms      Int
+  bathrooms     Int
+  area          Float           
+  amenities     String[]        
+  images        String[]        
+  status        PropertyStatus  @default(AVAILABLE)
+  categoryId    String
+  landlordId    String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  landlord       User            @relation("LandlordProperties", fields: [landlordId], references: [id])
+  rentalRequests RentalRequest[]
+  reviews        Review[]
+
+  @@index([location])
+  @@index([rent])
+}
+
+model RentalRequest {
+  id            String        @id @default(uuid())
+  tenantId      String
+  propertyId    String
+  moveInDate    DateTime
+  moveOutDate   DateTime
+  message       String?       
+  status        RentalStatus  @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tenant        User          @relation("TenantRequests", fields: [tenantId], references: [id])
+  property      Property      @relation(fields: [propertyId], references: [id])
+  payment       Payment?
+
+  @@index([status])
+}
+
+model Payment {
+  id              String          @id @default(uuid())
+  transactionId   String          @unique  
+  rentalRequestId String          @unique
+  tenantId        String
+  amount          Decimal         @db.Decimal(10, 2)
+  method          String          
+  provider        PaymentProvider 
+  status          PaymentStatus   @default(PENDING)
+  paidAt          DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  rentalRequest   RentalRequest   @relation(fields: [rentalRequestId], references: [id])
+  tenant          User            @relation(fields: [tenantId], references: [id])
+}
+
+model Review {
+  id            String    @id @default(uuid())
+  rating        Int       
+  comment       String
+  tenantId      String
+  propertyId    String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        User      @relation(fields: [tenantId], references: [id])
+  property      Property  @relation(fields: [propertyId], references: [id])
+
+  @@unique([tenantId, propertyId]) 
 }
