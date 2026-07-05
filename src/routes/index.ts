@@ -5,6 +5,8 @@ import { CategoryRoutes } from '../modules/category/category.route';
 
 import { RentalRoutes } from '../modules/rental/rental.route';
 
+import { PaymentRoutes } from '../modules/payment/payment.route';
+
 const router = express.Router();
 
 const moduleRoutes = [
@@ -23,6 +25,10 @@ const moduleRoutes = [
   {
     path: '/rentals',
     route: RentalRoutes,
+  },
+  {
+    path: '/payments',
+    route: PaymentRoutes,
   },
 ];
 
