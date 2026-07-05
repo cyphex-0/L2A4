@@ -34,8 +34,59 @@ const unbanUser = async (id: string) => {
   return result;
 };
 
+const getAllProperties = async () => {
+  const result = await prisma.property.findMany({
+    include: {
+      category: true,
+      landlord: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    }
+  });
+  return result;
+};
+
+const updateProperty = async (id: string, payload: any) => {
+  const result = await prisma.property.update({
+    where: { id },
+    data: payload,
+  });
+  return result;
+};
+
+const deleteProperty = async (id: string) => {
+  const result = await prisma.property.delete({
+    where: { id },
+  });
+  return result;
+};
+
+const getAllRentals = async () => {
+  const result = await prisma.rentalRequest.findMany({
+    include: {
+      property: true,
+      tenant: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    }
+  });
+  return result;
+};
+
 export const AdminService = {
   getAllUsers,
   banUser,
   unbanUser,
+  getAllProperties,
+  updateProperty,
+  deleteProperty,
+  getAllRentals,
 };

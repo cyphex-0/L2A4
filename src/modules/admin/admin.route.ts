@@ -27,4 +27,32 @@ router.put(
   AdminController.unbanUser
 );
 
+router.get(
+  '/properties',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  AdminController.getAllProperties
+);
+
+router.put(
+  '/properties/:id',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  AdminController.updateProperty
+);
+
+router.delete(
+  '/properties/:id',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  AdminController.deleteProperty
+);
+
+router.get(
+  '/rentals',
+  verifyJWT,
+  authorize(Role.ADMIN),
+  AdminController.getAllRentals
+);
+
 export const AdminRoutes = router;
