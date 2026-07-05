@@ -14,24 +14,20 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const banUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await AdminService.banUser(req.params.id as string);
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const { isBanned } = req.body;
+  
+  let result;
+  if (isBanned) {
+    result = await AdminService.banUser(req.params.id as string, req.user!.userId);
+  } else {
+    result = await AdminService.unbanUser(req.params.id as string);
+  }
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'User banned successfully',
-    data: result,
-  });
-});
-
-const unbanUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await AdminService.unbanUser(req.params.id as string);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'User unbanned successfully',
+    message: `User ${isBanned ? 'banned' : 'unbanned'} successfully`,
     data: result,
   });
 });
@@ -82,8 +78,7 @@ const getAllRentals = catchAsync(async (req: Request, res: Response) => {
 
 export const AdminController = {
   getAllUsers,
-  banUser,
-  unbanUser,
+  updateUserStatus,
   getAllProperties,
   updateProperty,
   deleteProperty,

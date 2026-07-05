@@ -5,7 +5,8 @@ import authorize from '../../middleware/authorize';
 import { Role } from '@prisma/client';
 
 import { uuidParamValidation } from '../../middleware/uuidValidation';
-
+import validateRequest from '../../middleware/validateRequest';
+import { PropertyValidation } from '../property/property.validation';
 const router = express.Router();
 
 router.get(
@@ -15,20 +16,15 @@ router.get(
   AdminController.getAllUsers
 );
 
-router.put(
-  '/users/:id/ban',
-  verifyJWT,
-  authorize(Role.ADMIN),
-  validateRequest(uuidParamValidation),
-  AdminController.banUser
-);
+import { AdminValidation } from './admin.validation';
 
-router.put(
-  '/users/:id/unban',
+router.patch(
+  '/users/:id',
   verifyJWT,
   authorize(Role.ADMIN),
   validateRequest(uuidParamValidation),
-  AdminController.unbanUser
+  validateRequest(AdminValidation.updateUserStatusSchema),
+  AdminController.updateUserStatus
 );
 
 router.get(
@@ -38,8 +34,6 @@ router.get(
   AdminController.getAllProperties
 );
 
-import validateRequest from '../../middleware/validateRequest';
-import { PropertyValidation } from '../property/property.validation';
 
 router.put(
   '/properties/:id',

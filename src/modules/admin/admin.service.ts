@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { AppError } from '../../errors/AppError';
 
 const prisma = new PrismaClient();
 
@@ -18,10 +19,36 @@ const getAllUsers = async () => {
   return result;
 };
 
-const banUser = async (id: string) => {
+const banUser = async (id: string, adminId: string) => {
+  if (id === adminId) {
+    throw new AppError(400, 'You cannot ban yourself');
+  }
+
+  const targetUser = await prisma.user.findUnique({
+    where: { id },
+  });
+
+  if (!targetUser) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (targetUser.role === 'ADMIN') {
+    throw new AppError(403, 'Cannot ban another admin');
+  }
+  
   const result = await prisma.user.update({
     where: { id },
     data: { isBanned: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+      isBanned: true,
+      createdAt: true,
+      updatedAt: true,
+    }
   });
   return result;
 };
@@ -30,6 +57,16 @@ const unbanUser = async (id: string) => {
   const result = await prisma.user.update({
     where: { id },
     data: { isBanned: false },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+      isBanned: true,
+      createdAt: true,
+      updatedAt: true,
+    }
   });
   return result;
 };

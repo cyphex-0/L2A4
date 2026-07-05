@@ -7,15 +7,15 @@ dotenv.config({ path: path.join(process.cwd(), '.env') });
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('5000'),
-  DATABASE_URL: z.string({ required_error: 'DATABASE_URL is required' }),
-  JWT_SECRET: z.string({ required_error: 'JWT_SECRET is required' }),
+  DATABASE_URL: z.string({ message: 'DATABASE_URL is required' }),
+  JWT_SECRET: z.string({ message: 'JWT_SECRET is required' }),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  JWT_REFRESH_SECRET: z.string({ required_error: 'JWT_REFRESH_SECRET is required' }),
+  JWT_REFRESH_SECRET: z.string({ message: 'JWT_REFRESH_SECRET is required' }),
   JWT_REFRESH_EXPIRES_IN: z.string().default('365d'),
-  STRIPE_SECRET_KEY: z.string({ required_error: 'STRIPE_SECRET_KEY is required' }),
-  STRIPE_WEBHOOK_SECRET: z.string({ required_error: 'STRIPE_WEBHOOK_SECRET is required' }),
+  STRIPE_SECRET_KEY: z.string({ message: 'STRIPE_SECRET_KEY is required' }),
+  STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET is required' }),
   BCRYPT_SALT_ROUNDS: z.string().default('12'),
-  SEED_ADMIN_PASSWORD: z.string({ required_error: 'SEED_ADMIN_PASSWORD is required' }),
+  SEED_ADMIN_PASSWORD: z.string({ message: 'SEED_ADMIN_PASSWORD is required' }),
 });
 
 const envVars = envSchema.safeParse(process.env);
