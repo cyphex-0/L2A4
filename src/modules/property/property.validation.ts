@@ -2,17 +2,17 @@ import { z } from 'zod';
 
 const createPropertySchema = z.object({
   body: z.object({
-    title: z.string({ required_error: 'Title is required' }),
-    description: z.string({ required_error: 'Description is required' }),
-    location: z.string({ required_error: 'Location is required' }),
-    address: z.string({ required_error: 'Address is required' }),
-    rent: z.number({ required_error: 'Rent is required' }).min(0),
-    bedrooms: z.number({ required_error: 'Bedrooms is required' }).min(1),
-    bathrooms: z.number({ required_error: 'Bathrooms is required' }).min(1),
-    area: z.number({ required_error: 'Area is required' }),
+    title: z.string({ message: 'Title is required' }),
+    description: z.string({ message: 'Description is required' }),
+    location: z.string({ message: 'Location is required' }),
+    address: z.string({ message: 'Address is required' }),
+    rent: z.number({ message: 'Rent is required' }).min(0),
+    bedrooms: z.number({ message: 'Bedrooms is required' }).min(1),
+    bathrooms: z.number({ message: 'Bathrooms is required' }).min(1),
+    area: z.number({ message: 'Area is required' }),
     amenities: z.array(z.string()).nonempty('At least one amenity is required'),
     images: z.array(z.string()).nonempty('At least one image is required'),
-    categoryId: z.string({ required_error: 'Category ID is required' }),
+    categoryId: z.string({ message: 'Category ID is required' }),
   }),
 });
 
