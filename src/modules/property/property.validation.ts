@@ -32,7 +32,22 @@ const updatePropertySchema = z.object({
   }),
 });
 
+const getPropertiesSchema = z.object({
+  query: z.object({
+    search: z.string().optional(),
+    minPrice: z.string().optional(),
+    maxPrice: z.string().optional(),
+    bedrooms: z.string().optional(),
+    location: z.string().optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
+    sortBy: z.string().optional(),
+    sortOrder: z.string().optional(),
+  }),
+});
+
 export const PropertyValidation = {
   createPropertySchema,
   updatePropertySchema,
+  getPropertiesSchema,
 };

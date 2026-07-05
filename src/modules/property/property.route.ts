@@ -10,7 +10,7 @@ const router = express.Router();
 
 import { uuidParamValidation } from '../../middleware/uuidValidation';
 
-router.get('/', PropertyController.getAllProperties);
+router.get('/', validateRequest(PropertyValidation.getPropertiesSchema), PropertyController.getAllProperties);
 router.get('/:id', validateRequest(uuidParamValidation), PropertyController.getPropertyById);
 
 router.post(
