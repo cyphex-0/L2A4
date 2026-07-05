@@ -19,6 +19,28 @@ const getAllProperties = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPropertyById = catchAsync(async (req: Request, res: Response) => {
+  const result = await PropertyService.getPropertyById(req.params.id);
+
+  if (!result) {
+    sendResponse(res, {
+      statusCode: 404,
+      success: false,
+      message: 'Property not found',
+      data: null,
+    });
+    return;
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Property details retrieved successfully',
+    data: result,
+  });
+});
+
 export const PropertyController = {
   getAllProperties,
+  getPropertyById,
 };
