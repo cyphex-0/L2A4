@@ -101,7 +101,62 @@ const getPropertyById = async (id: string) => {
   return property;
 };
 
+const createProperty = async (payload: any, landlordId: string) => {
+  const result = await prisma.property.create({
+    data: {
+      ...payload,
+      landlordId,
+    },
+    include: {
+      category: true,
+    }
+  });
+
+  return result;
+};
+
+const updateProperty = async (id: string, payload: any, landlordId: string) => {
+  const property = await prisma.property.findUnique({ where: { id } });
+
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  if (property.landlordId !== landlordId) {
+    throw new Error('You are not authorized to update this property');
+  }
+
+  const result = await prisma.property.update({
+    where: { id },
+    data: payload,
+    include: { category: true }
+  });
+
+  return result;
+};
+
+const deleteProperty = async (id: string, landlordId: string) => {
+  const property = await prisma.property.findUnique({ where: { id } });
+
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  if (property.landlordId !== landlordId) {
+    throw new Error('You are not authorized to delete this property');
+  }
+
+  const result = await prisma.property.delete({
+    where: { id },
+  });
+
+  return result;
+};
+
 export const PropertyService = {
   getAllProperties,
   getPropertyById,
+  createProperty,
+  updateProperty,
+  deleteProperty,
 };

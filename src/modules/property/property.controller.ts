@@ -20,7 +20,7 @@ const getAllProperties = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPropertyById = catchAsync(async (req: Request, res: Response) => {
-  const result = await PropertyService.getPropertyById(req.params.id);
+  const result = await PropertyService.getPropertyById(req.params.id as string);
 
   if (!result) {
     sendResponse(res, {
@@ -40,7 +40,43 @@ const getPropertyById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createProperty = catchAsync(async (req: Request, res: Response) => {
+  const result = await PropertyService.createProperty(req.body, req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Property created successfully',
+    data: result,
+  });
+});
+
+const updateProperty = catchAsync(async (req: Request, res: Response) => {
+  const result = await PropertyService.updateProperty(req.params.id as string, req.body, req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Property updated successfully',
+    data: result,
+  });
+});
+
+const deleteProperty = catchAsync(async (req: Request, res: Response) => {
+  const result = await PropertyService.deleteProperty(req.params.id as string, req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Property deleted successfully',
+    data: result,
+  });
+});
+
 export const PropertyController = {
   getAllProperties,
   getPropertyById,
+  createProperty,
+  updateProperty,
+  deleteProperty,
 };
