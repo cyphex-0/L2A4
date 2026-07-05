@@ -38,4 +38,11 @@ router.put(
   RentalController.updateRequestStatus
 );
 
+router.put(
+  '/:id/complete',
+  verifyJWT,
+  authorize(Role.LANDLORD),
+  RentalController.completeRentalRequest
+);
+
 export const RentalRoutes = router;

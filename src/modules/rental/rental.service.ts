@@ -82,9 +82,32 @@ const updateRequestStatus = async (id: string, landlordId: string, status: 'APPR
   return result;
 };
 
+const completeRentalRequest = async (id: string, landlordId: string) => {
+  const request = await prisma.rentalRequest.findUnique({
+    where: { id },
+    include: { property: true }
+  });
+
+  if (!request) {
+    throw new Error('Rental request not found');
+  }
+
+  if (request.property.landlordId !== landlordId) {
+    throw new Error('You are not authorized to update this request');
+  }
+
+  const result = await prisma.rentalRequest.update({
+    where: { id },
+    data: { status: 'COMPLETED' },
+  });
+
+  return result;
+};
+
 export const RentalService = {
   createRentalRequest,
   getTenantRequests,
   getLandlordRequests,
   updateRequestStatus,
+  completeRentalRequest,
 };
