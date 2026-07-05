@@ -4,6 +4,8 @@ import verifyJWT from '../../middleware/auth';
 import authorize from '../../middleware/authorize';
 import { Role } from '@prisma/client';
 
+import { uuidParamValidation } from '../../middleware/uuidValidation';
+
 const router = express.Router();
 
 router.get(
@@ -17,6 +19,7 @@ router.put(
   '/users/:id/ban',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
   AdminController.banUser
 );
 
@@ -24,6 +27,7 @@ router.put(
   '/users/:id/unban',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
   AdminController.unbanUser
 );
 
@@ -34,10 +38,15 @@ router.get(
   AdminController.getAllProperties
 );
 
+import validateRequest from '../../middleware/validateRequest';
+import { PropertyValidation } from '../property/property.validation';
+
 router.put(
   '/properties/:id',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
+  validateRequest(PropertyValidation.updatePropertySchema),
   AdminController.updateProperty
 );
 
@@ -45,6 +54,7 @@ router.delete(
   '/properties/:id',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
   AdminController.deleteProperty
 );
 

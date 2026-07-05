@@ -104,10 +104,35 @@ const completeRentalRequest = async (id: string, landlordId: string) => {
   return result;
 };
 
+const getRentalRequestById = async (id: string, userId: string, role: string) => {
+  const result = await prisma.rentalRequest.findUnique({
+    where: { id },
+    include: {
+      property: true,
+      tenant: true,
+    }
+  });
+
+  if (!result) {
+    throw new Error('Rental request not found');
+  }
+
+  if (role === 'TENANT' && result.tenantId !== userId) {
+    throw new Error('You do not have permission to view this request');
+  }
+
+  if (role === 'LANDLORD' && result.property.landlordId !== userId) {
+    throw new Error('You do not have permission to view this request');
+  }
+
+  return result;
+};
+
 export const RentalService = {
   createRentalRequest,
   getTenantRequests,
   getLandlordRequests,
   updateRequestStatus,
   completeRentalRequest,
+  getRentalRequestById,
 };

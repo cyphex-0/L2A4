@@ -59,10 +59,22 @@ const completeRentalRequest = catchAsync(async (req: Request, res: Response) => 
   });
 });
 
+const getRentalRequestById = catchAsync(async (req: Request, res: Response) => {
+  const result = await RentalService.getRentalRequestById(req.params.id as string, req.user!.userId, req.user!.role);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Rental request retrieved successfully',
+    data: result,
+  });
+});
+
 export const RentalController = {
   createRentalRequest,
   getTenantRequests,
   getLandlordRequests,
   updateRequestStatus,
   completeRentalRequest,
+  getRentalRequestById,
 };

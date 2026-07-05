@@ -6,6 +6,8 @@ import validateRequest from '../../middleware/validateRequest';
 import { CategoryValidation } from './category.validation';
 import { Role } from '@prisma/client';
 
+import { uuidParamValidation } from '../../middleware/uuidValidation';
+
 const router = express.Router();
 
 router.get('/', CategoryController.getAllCategories);
@@ -22,6 +24,7 @@ router.put(
   '/:id',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
   validateRequest(CategoryValidation.updateCategorySchema),
   CategoryController.updateCategory
 );
@@ -30,6 +33,7 @@ router.delete(
   '/:id',
   verifyJWT,
   authorize(Role.ADMIN),
+  validateRequest(uuidParamValidation),
   CategoryController.deleteCategory
 );
 

@@ -8,8 +8,10 @@ import { Role } from '@prisma/client';
 
 const router = express.Router();
 
+import { uuidParamValidation } from '../../middleware/uuidValidation';
+
 router.get('/', PropertyController.getAllProperties);
-router.get('/:id', PropertyController.getPropertyById);
+router.get('/:id', validateRequest(uuidParamValidation), PropertyController.getPropertyById);
 
 router.post(
   '/',
@@ -31,6 +33,7 @@ router.delete(
   '/:id',
   verifyJWT,
   authorize(Role.LANDLORD),
+  validateRequest(uuidParamValidation),
   PropertyController.deleteProperty
 );
 

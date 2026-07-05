@@ -6,10 +6,14 @@ import { Role } from '@prisma/client';
 
 const router = express.Router();
 
+import validateRequest from '../../middleware/validateRequest';
+import { PaymentValidation } from './payment.validation';
+
 router.post(
   '/create-intent',
   verifyJWT,
   authorize(Role.TENANT),
+  validateRequest(PaymentValidation.createPaymentIntentSchema),
   PaymentController.createPaymentIntent
 );
 

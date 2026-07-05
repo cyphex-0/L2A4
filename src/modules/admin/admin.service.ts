@@ -10,7 +10,7 @@ const getAllUsers = async () => {
       email: true,
       role: true,
       profileImage: true,
-      status: true,
+      isBanned: true,
       createdAt: true,
       updatedAt: true,
     }
@@ -21,7 +21,7 @@ const getAllUsers = async () => {
 const banUser = async (id: string) => {
   const result = await prisma.user.update({
     where: { id },
-    data: { status: 'BANNED' },
+    data: { isBanned: true },
   });
   return result;
 };
@@ -29,7 +29,7 @@ const banUser = async (id: string) => {
 const unbanUser = async (id: string) => {
   const result = await prisma.user.update({
     where: { id },
-    data: { status: 'ACTIVE' },
+    data: { isBanned: false },
   });
   return result;
 };
