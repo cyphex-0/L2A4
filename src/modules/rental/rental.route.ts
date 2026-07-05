@@ -23,4 +23,19 @@ router.get(
   RentalController.getTenantRequests
 );
 
+router.get(
+  '/requests',
+  verifyJWT,
+  authorize(Role.LANDLORD),
+  RentalController.getLandlordRequests
+);
+
+router.put(
+  '/:id/status',
+  verifyJWT,
+  authorize(Role.LANDLORD),
+  validateRequest(RentalValidation.updateRentalRequestStatusSchema),
+  RentalController.updateRequestStatus
+);
+
 export const RentalRoutes = router;
