@@ -3,3 +3,5 @@ dist
 .env
 docs/RentNest.postman_collection.json
 coverage
+
+/src/generated/prisma
