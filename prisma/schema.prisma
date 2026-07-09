@@ -36,6 +36,7 @@ enum PaymentStatus {
 
 enum PaymentProvider {
   STRIPE
+  SSLCOMMERZ
 }
 
 model User {
