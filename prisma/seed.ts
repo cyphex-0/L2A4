@@ -4,12 +4,33 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Cleaning database...');
+
+  // 1. Clean the database
+  // Remove all payments, reviews, rental requests, properties
+  await prisma.payment.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.rentalRequest.deleteMany();
+  await prisma.property.deleteMany();
+  
+  // Remove all non-admin users
+  await prisma.user.deleteMany({
+    where: {
+      role: {
+        not: Role.ADMIN,
+      },
+    },
+  });
+  
+  console.log('Database cleaned. Existing admin accounts preserved.');
+
   console.log('Seeding database...');
 
   const adminEmail = 'admin@rentnest.com';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'RentNest#Admin2026';
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
+  // Note: We are preserving existing admin, but if it doesn't exist for some reason, we create it.
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   });
@@ -25,7 +46,7 @@ async function main() {
     });
     console.log(`Admin user created: ${adminEmail}`);
   } else {
-    console.log(`Admin user already exists: ${adminEmail}`);
+    console.log(`Admin user already exists: ${adminEmail}. Preserved.`);
   }
 
   // Create categories
@@ -52,13 +73,11 @@ async function main() {
     }
   }
 
-  // Create sample landlords
+  // Create exactly 2 landlord accounts
   const samplePassword = await bcrypt.hash('password123', 12);
 
-  const landlord1 = await prisma.user.upsert({
-    where: { email: 'landlord1@rentnest.com' },
-    update: {},
-    create: {
+  const landlord1 = await prisma.user.create({
+    data: {
       name: 'John Smith',
       email: 'landlord1@rentnest.com',
       password: samplePassword,
@@ -67,12 +86,10 @@ async function main() {
       address: '456 Landlord Lane, New York, NY',
     },
   });
-  console.log(`Landlord created/found: ${landlord1.email}`);
+  console.log(`Landlord created: ${landlord1.email}`);
 
-  const landlord2 = await prisma.user.upsert({
-    where: { email: 'landlord2@rentnest.com' },
-    update: {},
-    create: {
+  const landlord2 = await prisma.user.create({
+    data: {
       name: 'Sarah Johnson',
       email: 'landlord2@rentnest.com',
       password: samplePassword,
@@ -81,38 +98,9 @@ async function main() {
       address: '789 Property Ave, Los Angeles, CA',
     },
   });
-  console.log(`Landlord created/found: ${landlord2.email}`);
+  console.log(`Landlord created: ${landlord2.email}`);
 
-  // Create sample tenants
-  const tenant1 = await prisma.user.upsert({
-    where: { email: 'tenant1@rentnest.com' },
-    update: {},
-    create: {
-      name: 'Alice Williams',
-      email: 'tenant1@rentnest.com',
-      password: samplePassword,
-      role: Role.TENANT,
-      phone: '+1-555-0201',
-      address: '101 Tenant Blvd, Chicago, IL',
-    },
-  });
-  console.log(`Tenant created/found: ${tenant1.email}`);
-
-  const tenant2 = await prisma.user.upsert({
-    where: { email: 'tenant2@rentnest.com' },
-    update: {},
-    create: {
-      name: 'Bob Davis',
-      email: 'tenant2@rentnest.com',
-      password: samplePassword,
-      role: Role.TENANT,
-      phone: '+1-555-0202',
-      address: '202 Renter St, Houston, TX',
-    },
-  });
-  console.log(`Tenant created/found: ${tenant2.email}`);
-
-  // Create sample properties
+  // Create exactly 5 meaningful properties
   const sampleProperties = [
     {
       title: 'Modern Downtown Apartment',
@@ -126,7 +114,7 @@ async function main() {
       amenities: ['wifi', 'parking', 'gym', 'doorman'],
       images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'],
       categoryId: categoryRecords['Apartment'],
-      landlordId: landlord1.id,
+      landlordId: landlord1.id, // Assigned to Landlord 1
     },
     {
       title: 'Cozy Studio near Central Park',
@@ -140,7 +128,7 @@ async function main() {
       amenities: ['wifi', 'laundry', 'elevator'],
       images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'],
       categoryId: categoryRecords['Studio'],
-      landlordId: landlord1.id,
+      landlordId: landlord1.id, // Assigned to Landlord 1
     },
     {
       title: 'Luxury LA Villa with Pool',
@@ -154,7 +142,7 @@ async function main() {
       amenities: ['wifi', 'parking', 'pool', 'garden', 'security'],
       images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6'],
       categoryId: categoryRecords['Villa'],
-      landlordId: landlord2.id,
+      landlordId: landlord2.id, // Assigned to Landlord 2
     },
     {
       title: 'Family-Friendly Suburban House',
@@ -168,20 +156,27 @@ async function main() {
       amenities: ['wifi', 'parking', 'backyard', 'garage'],
       images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994'],
       categoryId: categoryRecords['House'],
-      landlordId: landlord2.id,
+      landlordId: landlord2.id, // Assigned to Landlord 2
+    },
+    {
+      title: 'Spacious Beachfront Condo',
+      description: 'Beautiful 2-bedroom condo right on the beach with stunning ocean views and a private balcony.',
+      location: 'Miami',
+      address: '4500 Ocean Drive, Miami, FL 33139',
+      rent: 4200,
+      bedrooms: 2,
+      bathrooms: 2,
+      area: 1200,
+      amenities: ['wifi', 'pool', 'beach access', 'balcony'],
+      images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750'],
+      categoryId: categoryRecords['Condo'],
+      landlordId: landlord2.id, // Assigned to Landlord 2
     },
   ];
 
   for (const prop of sampleProperties) {
-    const existing = await prisma.property.findFirst({
-      where: { title: prop.title, landlordId: prop.landlordId },
-    });
-    if (!existing) {
-      await prisma.property.create({ data: prop });
-      console.log(`Property created: ${prop.title}`);
-    } else {
-      console.log(`Property already exists: ${prop.title}`);
-    }
+    await prisma.property.create({ data: prop });
+    console.log(`Property created: ${prop.title}`);
   }
 
   console.log('Database seeding completed.');
