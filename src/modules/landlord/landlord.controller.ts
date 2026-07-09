@@ -36,6 +36,17 @@ const deleteProperty = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getLandlordProperties = catchAsync(async (req: Request, res: Response) => {
+  const result = await LandlordService.getLandlordProperties(req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Landlord properties retrieved successfully',
+    data: result,
+  });
+});
+
 const getLandlordRequests = catchAsync(async (req: Request, res: Response) => {
   const result = await LandlordService.getLandlordRequests(req.user!.userId);
 
@@ -74,6 +85,7 @@ export const LandlordController = {
   createProperty,
   updateProperty,
   deleteProperty,
+  getLandlordProperties,
   getLandlordRequests,
   updateRequestStatus,
   completeRentalRequest,

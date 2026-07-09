@@ -6,7 +6,7 @@
 
 ## Live URL
 
-https://rentnest-api.onrender.com (or Vercel URL)
+https://l2a4-2.onrender.com
 
 ## Admin Credentials
 

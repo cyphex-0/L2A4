@@ -37,6 +37,13 @@ router.delete(
 );
 
 router.get(
+  '/properties',
+  verifyJWT,
+  authorize(Role.LANDLORD),
+  LandlordController.getLandlordProperties
+);
+
+router.get(
   '/requests',
   verifyJWT,
   authorize(Role.LANDLORD),
