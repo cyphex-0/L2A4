@@ -26,6 +26,14 @@ router.post(
   PaymentController.confirmPayment
 );
 
+router.post(
+  '/simulate-pay',
+  verifyJWT,
+  authorize(Role.TENANT),
+  validateRequest(PaymentValidation.confirmPaymentSchema), // We can reuse confirmPaymentSchema since it just takes paymentId
+  PaymentController.simulatePayment
+);
+
 router.get(
   '/',
   verifyJWT,

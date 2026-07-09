@@ -129,6 +129,37 @@ const confirmPayment = async (paymentId: string, tenantId: string) => {
   }
 };
 
+const simulatePayment = async (paymentId: string, tenantId: string) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+  });
+
+  if (!payment) {
+    throw new AppError(404, 'Payment not found');
+  }
+
+  if (payment.tenantId !== tenantId) {
+    throw new AppError(403, 'You are not authorized to simulate this payment');
+  }
+
+  if (payment.status === 'COMPLETED') {
+    throw new AppError(409, 'Payment already completed');
+  }
+
+  try {
+    await stripe.paymentIntents.confirm(payment.transactionId, {
+      payment_method: 'pm_card_visa',
+      return_url: 'https://example.com' // Required for some payment methods
+    });
+  } catch (err: any) {
+    // If it's already confirmed or fails, we log it and proceed to check the status anyway
+    console.error('Stripe simulation error:', err.message);
+  }
+
+  // Now that it is confirmed on Stripe, call the confirm function to update the database
+  return await confirmPayment(paymentId, tenantId);
+};
+
 const handleWebhook = async (payload: Buffer, signature: string) => {
   let event: Stripe.Event;
 
@@ -214,6 +245,7 @@ const getPaymentById = async (id: string, tenantId: string) => {
 export const PaymentService = {
   createPaymentIntent,
   confirmPayment,
+  simulatePayment,
   handleWebhook,
   getPaymentHistory,
   getPaymentById,

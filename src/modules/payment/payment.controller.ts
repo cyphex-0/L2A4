@@ -29,6 +29,19 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const simulatePayment = catchAsync(async (req: Request, res: Response) => {
+  const { paymentId } = req.body;
+
+  const result = await PaymentService.simulatePayment(paymentId, req.user!.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment simulated and confirmed successfully',
+    data: result,
+  });
+});
+
 const getPaymentHistory = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getPaymentHistory(req.user!.userId);
 
@@ -63,6 +76,7 @@ const stripeWebhook = catchAsync(async (req: Request, res: Response) => {
 export const PaymentController = {
   createPaymentIntent,
   confirmPayment,
+  simulatePayment,
   getPaymentHistory,
   getPaymentById,
   stripeWebhook,
