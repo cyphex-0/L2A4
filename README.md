@@ -11,7 +11,7 @@ https://l2a4-2.onrender.com
 ## Admin Credentials
 
 - Email: admin@rentnest.com
-- Password: RentNest#Admin2026
+- Password: RentNestAdmin2026
 
 ## Stripe Test Card
 
@@ -82,7 +82,8 @@ PORT=5000
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 BCRYPT_SALT_ROUNDS=12
-SEED_ADMIN_PASSWORD="RentNest#Admin2026"
+SEED_ADMIN_EMAIL="admin@rentnest.com"
+SEED_ADMIN_PASSWORD="RentNestAdmin2026"
 ```
 
 ### 4. Database Setup & Migrations
@@ -94,7 +95,7 @@ npx prisma migrate dev
 ### 5. Seed the Database
 Seed the database to automatically create the default Admin account and initial Property Categories:
 ```bash
-npm run prisma:seed
+npx prisma db seed
 ```
 
 ### 6. Start the Server
@@ -109,7 +110,7 @@ The server should now be running on `http://localhost:5000`.
 ## 👤 Admin Credentials
 When you run the seed command, the system automatically creates a default Admin user:
 - **Email**: `admin@rentnest.com`
-- **Password**: `RentNest#Admin2026`
+- **Password**: `RentNestAdmin2026`
 
 ---
 
