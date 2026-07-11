@@ -14,7 +14,7 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('365d'),
   STRIPE_SECRET_KEY: z.string({ message: 'STRIPE_SECRET_KEY is required' }),
   STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET is required' }),
-  BCRYPT_SALT_ROUNDS: z.string().default('12'),
+  BCRYPT_SALT_ROUNDS: z.string().default('8'),
   SEED_ADMIN_PASSWORD: z.string({ message: 'SEED_ADMIN_PASSWORD is required' }),
 });
 

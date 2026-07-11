@@ -15,7 +15,7 @@ const registerUser = async (payload: any) => {
     throw new AppError(409, 'User with this email already exists');
   }
 
-  const hashedPassword = await bcrypt.hash(payload.password, 12);
+  const hashedPassword = await bcrypt.hash(payload.password, Number(config.bcrypt_salt_rounds));
 
   const newUser = await prisma.user.create({
     data: {

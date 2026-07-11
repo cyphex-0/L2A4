@@ -28,7 +28,7 @@ async function main() {
 
   const adminEmail = 'admin@rentnest.com';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'RentNest#Admin2026';
-  const hashedPassword = await bcrypt.hash(adminPassword, 12);
+  const hashedPassword = await bcrypt.hash(adminPassword, Number(process.env.BCRYPT_SALT_ROUNDS) || 12);
 
   // Note: We are preserving existing admin, but if it doesn't exist for some reason, we create it.
   const existingAdmin = await prisma.user.findUnique({
@@ -74,7 +74,7 @@ async function main() {
   }
 
   // Create exactly 2 landlord accounts
-  const samplePassword = await bcrypt.hash('password123', 12);
+  const samplePassword = await bcrypt.hash('password123', Number(process.env.BCRYPT_SALT_ROUNDS) || 12);
 
   const landlord1 = await prisma.user.create({
     data: {
