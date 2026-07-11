@@ -103,23 +103,23 @@ const confirmPayment = async (paymentId: string, tenantId: string) => {
   );
 
   if (paymentIntent.status === "succeeded") {
-    const updatedPayment = await prisma.payment.update({
-      where: { id: paymentId },
-      data: {
-        status: "COMPLETED",
-        paidAt: new Date(),
-      },
-    });
-
-    await prisma.rentalRequest.update({
-      where: { id: payment.rentalRequestId },
-      data: { status: "ACTIVE" },
-    });
-
-    await prisma.property.update({
-      where: { id: payment.rentalRequest.propertyId },
-      data: { status: "RENTED" },
-    });
+    const [updatedPayment] = await prisma.$transaction([
+      prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: "COMPLETED",
+          paidAt: new Date(),
+        },
+      }),
+      prisma.rentalRequest.update({
+        where: { id: payment.rentalRequestId },
+        data: { status: "ACTIVE" },
+      }),
+      prisma.property.update({
+        where: { id: payment.rentalRequest.propertyId },
+        data: { status: "RENTED" },
+      }),
+    ]);
 
     return updatedPayment;
   } else {
@@ -181,32 +181,34 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-    await prisma.payment.update({
-      where: { transactionId: paymentIntent.id },
-      data: {
-        status: "COMPLETED",
-        paidAt: new Date(),
-      },
-    });
-
     const payment = await prisma.payment.findUnique({
       where: { transactionId: paymentIntent.id },
     });
 
     if (payment) {
-      await prisma.rentalRequest.update({
+      const rentalRequest = await prisma.rentalRequest.findUnique({
         where: { id: payment.rentalRequestId },
-        data: { status: "ACTIVE" },
       });
 
-      await prisma.property.update({
-        where: {
-          id: (await prisma.rentalRequest.findUnique({
+      if (rentalRequest) {
+        await prisma.$transaction([
+          prisma.payment.update({
+            where: { transactionId: paymentIntent.id },
+            data: {
+              status: "COMPLETED",
+              paidAt: new Date(),
+            },
+          }),
+          prisma.rentalRequest.update({
             where: { id: payment.rentalRequestId },
-          }))!.propertyId,
-        },
-        data: { status: "RENTED" },
-      });
+            data: { status: "ACTIVE" },
+          }),
+          prisma.property.update({
+            where: { id: rentalRequest.propertyId },
+            data: { status: "RENTED" },
+          }),
+        ]);
+      }
     }
   }
 

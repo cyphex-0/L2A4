@@ -157,15 +157,16 @@ const completeRentalRequest = async (id: string, landlordId: string) => {
     throw new AppError(400, 'Only active rentals can be marked as completed');
   }
 
-  const result = await prisma.rentalRequest.update({
-    where: { id },
-    data: { status: 'COMPLETED' },
-  });
-
-  await prisma.property.update({
-    where: { id: request.propertyId },
-    data: { status: 'AVAILABLE' },
-  });
+  const [result] = await prisma.$transaction([
+    prisma.rentalRequest.update({
+      where: { id },
+      data: { status: 'COMPLETED' },
+    }),
+    prisma.property.update({
+      where: { id: request.propertyId },
+      data: { status: 'AVAILABLE' },
+    }),
+  ]);
 
   return result;
 };
