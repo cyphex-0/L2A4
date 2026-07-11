@@ -7,70 +7,48 @@ async function main() {
   console.log('Cleaning database...');
 
   // 1. Clean the database
-  // Remove all payments, reviews, rental requests, properties
+  // Remove all payments, reviews, rental requests, properties, categories, and users
   await prisma.payment.deleteMany();
   await prisma.review.deleteMany();
   await prisma.rentalRequest.deleteMany();
   await prisma.property.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
   
-  // Remove all non-admin users
-  await prisma.user.deleteMany({
-    where: {
-      role: {
-        not: Role.ADMIN,
-      },
-    },
-  });
-  
-  console.log('Database cleaned. Existing admin accounts preserved.');
+  console.log('Database cleaned completely.');
 
   console.log('Seeding database...');
 
-  const adminEmail = 'admin@rentnest.com';
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'RentNest#Admin2026';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@rentnest.com';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'RentNestAdmin2026';
   const hashedPassword = await bcrypt.hash(adminPassword, Number(process.env.BCRYPT_SALT_ROUNDS) || 12);
 
-  // Note: We are preserving existing admin, but if it doesn't exist for some reason, we create it.
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
+  await prisma.user.create({
+    data: {
+      name: 'System Admin',
+      email: adminEmail,
+      password: hashedPassword,
+      role: Role.ADMIN,
+    },
   });
+  console.log(`Admin user created: ${adminEmail}`);
 
-  if (!existingAdmin) {
-    await prisma.user.create({
-      data: {
-        name: 'System Admin',
-        email: adminEmail,
-        password: hashedPassword,
-        role: Role.ADMIN,
-      },
-    });
-    console.log(`Admin user created: ${adminEmail}`);
-  } else {
-    console.log(`Admin user already exists: ${adminEmail}. Preserved.`);
-  }
-
-  // Create categories
+  // Create exactly 5 meaningful categories
   const categories = [
     'Apartment',
-    'House',
-    'Studio',
-    'Condo',
-    'Duplex',
-    'Villa'
+    'Suburban House',
+    'Luxury Villa',
+    'Commercial Space',
+    'Vacation Cabin'
   ];
 
   const categoryRecords: Record<string, string> = {};
   for (const name of categories) {
-    const existing = await prisma.category.findUnique({ where: { name } });
-    if (!existing) {
-      const cat = await prisma.category.create({
-        data: { name, description: `Standard ${name} category` },
-      });
-      categoryRecords[name] = cat.id;
-      console.log(`Category created: ${name}`);
-    } else {
-      categoryRecords[name] = existing.id;
-    }
+    const cat = await prisma.category.create({
+      data: { name, description: `High quality ${name} properties` },
+    });
+    categoryRecords[name] = cat.id;
+    console.log(`Category created: ${name}`);
   }
 
   // Create exactly 2 landlord accounts
@@ -100,7 +78,7 @@ async function main() {
   });
   console.log(`Landlord created: ${landlord2.email}`);
 
-  // Create exactly 5 meaningful properties
+  // Create exactly 1 property assigned to each landlord
   const sampleProperties = [
     {
       title: 'Modern Downtown Apartment',
@@ -117,34 +95,6 @@ async function main() {
       landlordId: landlord1.id, // Assigned to Landlord 1
     },
     {
-      title: 'Cozy Studio near Central Park',
-      description: 'A well-lit studio apartment just steps away from Central Park. Perfect for singles or couples.',
-      location: 'New York',
-      address: '350 West 72nd St, New York, NY 10023',
-      rent: 1800,
-      bedrooms: 1,
-      bathrooms: 1,
-      area: 500,
-      amenities: ['wifi', 'laundry', 'elevator'],
-      images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'],
-      categoryId: categoryRecords['Studio'],
-      landlordId: landlord1.id, // Assigned to Landlord 1
-    },
-    {
-      title: 'Luxury LA Villa with Pool',
-      description: 'A stunning 4-bedroom villa with a private pool, garden, and panoramic views of the Hollywood Hills.',
-      location: 'Los Angeles',
-      address: '8800 Sunset Blvd, Los Angeles, CA 90069',
-      rent: 5500,
-      bedrooms: 4,
-      bathrooms: 3,
-      area: 2800,
-      amenities: ['wifi', 'parking', 'pool', 'garden', 'security'],
-      images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6'],
-      categoryId: categoryRecords['Villa'],
-      landlordId: landlord2.id, // Assigned to Landlord 2
-    },
-    {
       title: 'Family-Friendly Suburban House',
       description: 'A charming 3-bedroom house in a quiet suburban neighborhood with a large backyard and garage.',
       location: 'Los Angeles',
@@ -155,23 +105,9 @@ async function main() {
       area: 1800,
       amenities: ['wifi', 'parking', 'backyard', 'garage'],
       images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994'],
-      categoryId: categoryRecords['House'],
+      categoryId: categoryRecords['Suburban House'],
       landlordId: landlord2.id, // Assigned to Landlord 2
-    },
-    {
-      title: 'Spacious Beachfront Condo',
-      description: 'Beautiful 2-bedroom condo right on the beach with stunning ocean views and a private balcony.',
-      location: 'Miami',
-      address: '4500 Ocean Drive, Miami, FL 33139',
-      rent: 4200,
-      bedrooms: 2,
-      bathrooms: 2,
-      area: 1200,
-      amenities: ['wifi', 'pool', 'beach access', 'balcony'],
-      images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750'],
-      categoryId: categoryRecords['Condo'],
-      landlordId: landlord2.id, // Assigned to Landlord 2
-    },
+    }
   ];
 
   for (const prop of sampleProperties) {
